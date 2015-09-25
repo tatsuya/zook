@@ -1,0 +1,28 @@
+{
+  "name": "zook",
+  "version": "0.0.0",
+  "description": "CLI for Apache ZooKeeper",
+  "preferGlobal": "true",
+  "bin": {
+    "zook": "index.js"
+  },
+  "scripts": {
+    "test": "mocha --reporter spec"
+  },
+  "dependencies": {
+    "minimist": "^1.2.0",
+    "node-zookeeper-client": "^0.2.2",
+    "yargs": "^3.26.0"
+  },
+  "devDependencies": {
+    "mocha": "^2.2.5"
+  },
+  "author": {
+    "name": "Tatsuya Oiwa",
+    "email": "tatsuyaoiw@gmail.com"
+  },
+  "keywords": [
+    "zookeeper"
+  ],
+  "license": "MIT"
+}
