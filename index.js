@@ -8,7 +8,7 @@ var zookeeper = require('node-zookeeper-client');
 var DEFAULT_ZOOKEEPER_SERVER = 'localhost:2181';
 
 var argv = require('yargs')
-  .usage('Usage: $0 <command> [options]')
+  .usage('Usage: zook <command> [options]')
   .command('exists', 'Check existence of a node', function(yargs) {
     argv = yargs
       .option('s', {
@@ -68,7 +68,11 @@ var argv = require('yargs')
       .argv;
   })
   .demand(1)
-  .example('$0 exists -s localhost:2181 -p /zookeeper/quota')
+  .option('s', {
+    alias: 'server',
+    desc: 'Comma separated host:port pairs'
+  })
+  .example('zook exists -s localhost:2181 -p /zookeeper/quota')
   .help('h')
   .alias('h', 'help')
   .argv;
