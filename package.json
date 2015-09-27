@@ -1,10 +1,21 @@
 {
   "name": "zook",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A command line tool for Apache ZooKeeper",
-  "preferGlobal": "true",
+  "keywords": [
+    "zookeeper"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "Tatsuya Oiwa",
+    "email": "tatsuyaoiw@gmail.com"
+  },
   "bin": {
     "zook": "index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tatsuyaoiw/zook.git"
   },
   "scripts": {
     "test": "mocha --reporter spec"
@@ -16,12 +27,5 @@
   "devDependencies": {
     "urun": "0.0.8"
   },
-  "author": {
-    "name": "Tatsuya Oiwa",
-    "email": "tatsuyaoiw@gmail.com"
-  },
-  "keywords": [
-    "zookeeper"
-  ],
-  "license": "MIT"
+  "preferGlobal": "true"
 }
