@@ -50,7 +50,3 @@ Options:
 Examples:
   zook exists -s localhost:2181 -p /zookeeper/quota
 ```
-
-## Note
-
-zook is still very early and most of the features are currently work in progress.
