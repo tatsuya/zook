@@ -36,7 +36,6 @@ Options:
   -h, --help    Show help                                              [boolean]
 
 Examples:
-  /home/tatsuyaoiw/.nodebrew/current/bin/
   zook exists -s localhost:2181 -p /
 ```
 
