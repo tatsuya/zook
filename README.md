@@ -26,6 +26,12 @@ Create a node.
 $ zook create --path /zook --data hello!
 ```
 
+Remove a node.
+
+```
+$ zook remove --path /zook
+```
+
 ## Usage
 
 This usage can also be printed by `zook -h` or `zook --help`.
