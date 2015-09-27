@@ -18,6 +18,14 @@ Zook is a command like tool so it is strongly recommended to install globally wi
 $ npm install zook -g
 ```
 
+## Example
+
+Create a node.
+
+```
+$ zook create --path /zook --data hello!
+```
+
 ## Usage
 
 This usage can also be printed by `zook -h` or `zook --help`.
