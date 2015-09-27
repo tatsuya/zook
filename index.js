@@ -49,7 +49,24 @@ var argv = require('yargs')
       .alias('h', 'help')
       .argv;
   })
-  .command('remove', 'Delete a node')
+  .command('remove', 'Delete a node', function(yargs) {
+    argv = yargs
+      .option('s', {
+        alias: 'server',
+        desc: 'Comma separated host:port pairs'
+      })
+      .option('p', {
+        alias: 'path',
+        desc: 'Path of the node',
+        required: true
+      })
+      .default({
+        server: DEFAULT_ZOOKEEPER_SERVER
+      })
+      .help('h')
+      .alias('h', 'help')
+      .argv;
+  })
   .demand(1)
   .example('$0 exists -s localhost:2181 -p /zookeeper/quota')
   .help('h')
@@ -146,7 +163,7 @@ client.once('connected', function() {
             exit(1, 'Failed to create a node "%s" because the node already exists.', path);
             break;
           case zookeeper.Exception.NO_NODE:
-            exit(1, 'Failed to create a node "%s" because the parent node does not exist.', path);
+            exit(1, 'Failed to create a node "%s" because the node does not exist.', path);
             break;
           default:
             console.log(err);
@@ -165,11 +182,18 @@ client.once('connected', function() {
   function remove() {
     client.remove(path, function(err) {
       if (err) {
-        console.log(err);
-        exit(1, 'Failed to remove a node "%s"', path);
+        var code = err.getCode();
+        switch (code) {
+          case zookeeper.Exception.NO_NODE:
+            exit(1, 'Failed to remove a node "%s" because the node does not exist.', path);
+            break;
+          default:
+            console.log(err);
+            exit(1, 'Failed to remove a node "%s".', path);
+        }
       }
 
-      console.log('Node "%s" is deleted.', path);
+      exit(0, 'Node "%s" is deleted.', path);
     });
   }
 });
