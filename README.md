@@ -31,12 +31,10 @@ Commands:
   remove  Delete a node
 
 Options:
-  -s, --server  Comma separated host:port pairs      [default: "localhost:2181"]
-  -p, --path    Path of the node                                      [required]
-  -h, --help    Show help                                              [boolean]
+  -h, --help  Show help                                                [boolean]
 
 Examples:
-  zook exists -s localhost:2181 -p /
+  zook exists -s localhost:2181 -p /zookeeper/quota
 ```
 
 ## Note
