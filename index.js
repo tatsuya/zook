@@ -3,24 +3,55 @@
 'use strict';
 
 var util = require('util');
-var yargs = require('yargs');
 var zookeeper = require('node-zookeeper-client');
 
-var argv = yargs
+var DEFAULT_ZOOKEEPER_SERVER = 'localhost:2181';
+
+var argv = require('yargs')
   .usage('Usage: $0 <command> [options]')
-  .command('exists', 'Check existence of a node')
-  .command('create', 'Create a node')
+  .command('exists', 'Check existence of a node', function(yargs) {
+    argv = yargs
+      .option('s', {
+        alias: 'server',
+        desc: 'Comma separated host:port pairs'
+      })
+      .option('p', {
+        alias: 'path',
+        desc: 'Path of the node',
+        required: true
+      })
+      .default({
+        server: DEFAULT_ZOOKEEPER_SERVER
+      })
+      .help('h')
+      .alias('h', 'help')
+      .argv;
+  })
+  .command('create', 'Create a node', function(yargs) {
+    argv = yargs
+      .option('s', {
+        alias: 'server',
+        desc: 'Comma separated host:port pairs'
+      })
+      .option('p', {
+        alias: 'path',
+        desc: 'Path of the node',
+        required: true
+      })
+      .option('d', {
+        alias: 'data',
+        desc: 'Data assosiated with the node'
+      })
+      .default({
+        server: DEFAULT_ZOOKEEPER_SERVER
+      })
+      .help('h')
+      .alias('h', 'help')
+      .argv;
+  })
   .command('remove', 'Delete a node')
   .demand(1)
-  .example('$0 exists -s localhost:2181 -p /')
-  .alias('s', 'server')
-  .describe('s', 'Comma separated host:port pairs')
-  .demand('p')
-  .alias('p', 'path')
-  .describe('p', 'Path of the node')
-  .default({
-    server: 'localhost:2181'
-  })
+  .example('$0 exists -s localhost:2181 -p /zookeeper/quota')
   .help('h')
   .alias('h', 'help')
   .argv;
@@ -40,9 +71,9 @@ var client = zookeeper.createClient(connectionString);
  *
  * @param  {message} - Arguments to be passed in console.log().
  */
-function exitWithError(message) {
-  // Remove first argument from arguments object.
-  // Array.prototype.shift.apply(arguments);
+function exit(code, message) {
+  // Remove first argument (exit code) from arguments object.
+  Array.prototype.shift.apply(arguments);
 
   // Check if message exits.
   if (arguments.length) {
@@ -57,13 +88,13 @@ function exitWithError(message) {
     client.close();
   }
 
-  process.exit(1);
+  process.exit(code);
 }
 
 var INITIAL_CONNECTION_TIMEOUT_MS = 3000;
 
 var timeout = setTimeout(function() {
-  exitWithError('Cannot connect to "%s".', connectionString);
+  exit(1, 'Cannot connect to "%s".', connectionString);
 }, INITIAL_CONNECTION_TIMEOUT_MS);
 
 
@@ -79,20 +110,22 @@ client.once('connected', function() {
       exists();
       break;
     case 'create':
-      exitWithError('Command "%s" is not implemented yet.', command)
+      create();
       break;
     case 'remove':
       remove();
       break;
     default:
-      exitWithError('Unsupported command "%s".', command)
+      exit(1, 'Unsupported command "%s".', command);
   }
+
+  client.close();
 
   function exists() {
     client.exists(path, function(err, stat) {
       if (err) {
         console.log(err);
-        exitWithError('Failed to check existence of a node "%s"', path);
+        exit(1, 'Failed to check existence of a node "%s".', path);
       }
 
       if (stat) {
@@ -100,8 +133,32 @@ client.once('connected', function() {
       } else {
         console.log('Node "%s" does not exist.', path)
       }
+    });
+  }
 
-      client.close();
+  function create() {
+    var data = argv.data ? new Buffer(argv.data) : null;
+    client.create(path, data, function(err) {
+      if (err) {
+        var code = err.getCode();
+        switch (code) {
+          case zookeeper.Exception.NODE_EXISTS:
+            exit(1, 'Failed to create a node "%s" because the node already exists.', path);
+            break;
+          case zookeeper.Exception.NO_NODE:
+            exit(1, 'Failed to create a node "%s" because the parent node does not exist.', path);
+            break;
+          default:
+            console.log(err);
+            exit(1, 'Failed to create a node "%s".', path);
+        }
+      }
+
+      if (data) {
+        exit(0, 'Node "%s" is created with data "%s".', path, argv.data);
+      } else {
+        exit(0, 'Node "%s" is created.', path);
+      }
     });
   }
 
@@ -109,12 +166,10 @@ client.once('connected', function() {
     client.remove(path, function(err) {
       if (err) {
         console.log(err);
-        exitWithError('Failed to remove a node "%s"', path);
+        exit(1, 'Failed to remove a node "%s"', path);
       }
 
       console.log('Node "%s" is deleted.', path);
-
-      client.close();
     });
   }
 });

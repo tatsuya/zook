@@ -11,11 +11,12 @@ exports.exec = function(args) {
   var cmd = 'node ' + zook + ' ' + args;
 
   exec(cmd, function(err, stdout, stderr) {
-    if (err) {
-      console.log('ecec error: ' + err);
-      return;
-    }
     console.log('stdout: ' + stdout);
     console.log('stderr: ' + stderr);
+
+    if (err) {
+      console.log('exec error: ' + err);
+      return;
+    }
   });
 };
