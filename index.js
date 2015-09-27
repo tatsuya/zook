@@ -75,6 +75,9 @@ var argv = require('yargs')
   .example('zook exists -s localhost:2181 -p /zookeeper/quota')
   .help('h')
   .alias('h', 'help')
+  .version(function() {
+    return require('./package').version;
+  })
   .argv;
 
 var connectionString = argv.server;
