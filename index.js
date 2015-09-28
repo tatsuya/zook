@@ -80,8 +80,73 @@ var argv = require('yargs')
   })
   .argv;
 
+var commands = {
+  exists: function() {
+    client.exists(path, function(err, stat) {
+      if (err) {
+        console.log(err);
+        exit(1, 'Failed to check existence of a node "%s".', path);
+      }
+
+      if (stat) {
+        console.log('Node "%s" exists.', path);
+      } else {
+        console.log('Node "%s" does not exist.', path)
+      }
+    });
+  },
+  create: function() {
+    var data = argv.data ? new Buffer(argv.data) : null;
+    client.create(path, data, function(err) {
+      if (err) {
+        var code = err.getCode();
+        switch (code) {
+          case zookeeper.Exception.NODE_EXISTS:
+            exit(1, 'Failed to create a node "%s" because the node already exists.', path);
+            break;
+          case zookeeper.Exception.NO_NODE:
+            exit(1, 'Failed to create a node "%s" because the node does not exist.', path);
+            break;
+          default:
+            console.log(err);
+            exit(1, 'Failed to create a node "%s".', path);
+        }
+      }
+
+      if (data) {
+        exit(0, 'Node "%s" is created with data "%s".', path, argv.data);
+      } else {
+        exit(0, 'Node "%s" is created.', path);
+      }
+    });
+  },
+  remove: function() {
+    client.remove(path, function(err) {
+      if (err) {
+        var code = err.getCode();
+        switch (code) {
+          case zookeeper.Exception.NO_NODE:
+            exit(1, 'Failed to remove a node "%s" because the node does not exist.', path);
+            break;
+          default:
+            console.log(err);
+            exit(1, 'Failed to remove a node "%s".', path);
+        }
+      }
+
+      exit(0, 'Node "%s" is deleted.', path);
+    });
+  }
+};
+
+var commandName = argv._.shift();
+var command = commands[commandName];
+if (!command) {
+  console.log('Unsupported command "%s".', commandName);
+  process.exit(1);
+}
+
 var connectionString = argv.server;
-var command = argv._.shift();
 var path = argv.path;
 
 var client = zookeeper.createClient(connectionString);
@@ -121,88 +186,16 @@ var timeout = setTimeout(function() {
   exit(1, 'Cannot connect to "%s".', connectionString);
 }, INITIAL_CONNECTION_TIMEOUT_MS);
 
-
 client.once('connected', function() {
   // clear initial timeout setting.
   clearTimeout(timeout);
 
   console.log('Connected to the server.');
 
-  console.log('Running "%s" command.', command);
-  switch (command) {
-    case 'exists':
-      exists();
-      break;
-    case 'create':
-      create();
-      break;
-    case 'remove':
-      remove();
-      break;
-    default:
-      exit(1, 'Unsupported command "%s".', command);
-  }
+  console.log('Running "%s" command.', commandName);
+  command();
 
   client.close();
-
-  function exists() {
-    client.exists(path, function(err, stat) {
-      if (err) {
-        console.log(err);
-        exit(1, 'Failed to check existence of a node "%s".', path);
-      }
-
-      if (stat) {
-        console.log('Node "%s" exists.', path);
-      } else {
-        console.log('Node "%s" does not exist.', path)
-      }
-    });
-  }
-
-  function create() {
-    var data = argv.data ? new Buffer(argv.data) : null;
-    client.create(path, data, function(err) {
-      if (err) {
-        var code = err.getCode();
-        switch (code) {
-          case zookeeper.Exception.NODE_EXISTS:
-            exit(1, 'Failed to create a node "%s" because the node already exists.', path);
-            break;
-          case zookeeper.Exception.NO_NODE:
-            exit(1, 'Failed to create a node "%s" because the node does not exist.', path);
-            break;
-          default:
-            console.log(err);
-            exit(1, 'Failed to create a node "%s".', path);
-        }
-      }
-
-      if (data) {
-        exit(0, 'Node "%s" is created with data "%s".', path, argv.data);
-      } else {
-        exit(0, 'Node "%s" is created.', path);
-      }
-    });
-  }
-
-  function remove() {
-    client.remove(path, function(err) {
-      if (err) {
-        var code = err.getCode();
-        switch (code) {
-          case zookeeper.Exception.NO_NODE:
-            exit(1, 'Failed to remove a node "%s" because the node does not exist.', path);
-            break;
-          default:
-            console.log(err);
-            exit(1, 'Failed to remove a node "%s".', path);
-        }
-      }
-
-      exit(0, 'Node "%s" is deleted.', path);
-    });
-  }
 });
 
 client.once('connectedReadOnly', function() {
