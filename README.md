@@ -50,3 +50,7 @@ Options:
 Examples:
   zook exists -s localhost:2181 -p /zookeeper/quota
 ```
+
+## Debugging
+
+To enable debug logging, launch the node process like `DEBUG=true zook`.

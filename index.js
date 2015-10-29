@@ -7,6 +7,16 @@ var zookeeper = require('node-zookeeper-client');
 
 var DEFAULT_ZOOKEEPER_SERVER = 'localhost:2181';
 
+/**
+ * Output log only if environment variable DEBUG is enabled.
+ */
+function debug() {
+  if (process.env.DEBUG) {
+    // Because arguments is an array-like object, it must be called with Function.prototype.apply().
+    console.log('DEBUG: %s', util.format.apply(util, arguments));
+  }
+}
+
 var argv = require('yargs')
   .usage('Usage: zook <command> [options]')
   .command('exists', 'Check existence of a node', function(yargs) {
@@ -173,7 +183,7 @@ function exit(code, message) {
   // Close the connection if its state is not DISCONNECTED.
   var state = client.getState();
   if (state !== zookeeper.State.DISCONNECTED) {
-    console.log('Closing the connection before exiting...');
+    debug('Closing the connection before exiting...');
     client.close();
   }
 
@@ -190,9 +200,9 @@ client.once('connected', function() {
   // clear initial timeout setting.
   clearTimeout(timeout);
 
-  console.log('Connected to the server.');
+  debug('Connected to the server.');
 
-  console.log('Running "%s" command.', commandName);
+  debug('Running "%s" command.', commandName);
   command();
 
   client.close();
@@ -200,22 +210,22 @@ client.once('connected', function() {
 
 client.once('connectedReadOnly', function() {
   clearTimeout(timeout);
-	console.log('connectedReadOnly');
+	debug('connectedReadOnly');
 });
 
 client.once('disconnected', function() {
   clearTimeout(timeout);
-  console.log('The connection between client and server is dropped.');
+  debug('The connection between client and server is dropped.');
 });
 
 client.once('expired', function() {
   clearTimeout(timeout);
-	console.log('expired')
+	debug('expired')
 });
 
 client.once('authenticationFailed', function() {
   clearTimeout(timeout);
-	console.log('authenticationFailed')
+	debug('authenticationFailed')
 });
 
 client.connect();
